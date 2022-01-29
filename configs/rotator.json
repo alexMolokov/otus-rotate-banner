@@ -1,0 +1,22 @@
+{
+  "logger": {
+    "level": "info",
+    "encoding": "json",
+    "output": "./log/log_rotator.json"
+  },
+  "driverDb": "postgres",
+  "grpc": {
+    "host": "127.0.0.1",
+    "port": 8086
+  },
+  "db": {
+    "driver": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "name": "banner",
+    "user": "banner",
+    "password": "banner",
+    "maxConnectionPool": 4,
+    "SslMode": "disable"
+  }
+}

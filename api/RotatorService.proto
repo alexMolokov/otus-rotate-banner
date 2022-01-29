@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package rotator;
+option go_package = "./;pb";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+
+message AddBannerToSlotRequest {
+  int64 banner_id = 1 [(validate.rules).int64 = {gte: 0}]; // ID баннера
+  int64 slot_id = 2 [(validate.rules).int64 = {gte: 0}]; // ID слота
+}
+
+message RemoveBannerFromSlotRequest {
+  int64 banner_id = 1 [(validate.rules).int64 = {gte: 0}];
+  int64 slot_id = 2 [(validate.rules).int64 = {gte: 0}];
+}
+
+message CountTransitionRequest {
+  int64 slot_id = 1 [(validate.rules).int64 = {gte: 0}]; // ID слота
+  int64 banner_id = 2  [(validate.rules).int64 = {gte: 0}]; // ID баннера
+  int64 sg_id = 3 [(validate.rules).int64 = {gte: 0}]; // Соц. группа
+}
+
+message ChooseBannerRequest {
+  int64 slot_id = 1 [(validate.rules).int64 = {gte: 0}];
+  int64 sg_id = 2 [(validate.rules).int64 = {gte: 0}];
+}
+
+message ChooseBannerResponse {
+  int64 banner_id = 1; // ID баннера для показа
+}
+
+service Rotator {
+  // Добавить новый баннер в ротацию в слоте
+  rpc AddBannerToSlot (AddBannerToSlotRequest) returns (google.protobuf.Empty){
+    option (google.api.http) = {
+      post: "/api/v1/banner-slot/add"
+      body: "*"
+    };
+  };
+  // Удалить баннер из ротации в слоте
+  rpc RemoveBannerFromSlot (RemoveBannerFromSlotRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/banner-slot/remove"
+      body: "*"
+    };
+  };
+  // Засчитать переход
+  rpc CountTransition(CountTransitionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/banner/transition"
+      body: "*"
+    };
+  };
+  // Выбрать баннер для показа
+  rpc ChooseBanner(ChooseBannerRequest) returns (ChooseBannerResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/banner/choose"
+      body: "*"
+    };
+  };
+}

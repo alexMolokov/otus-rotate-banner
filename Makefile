@@ -1,14 +1,14 @@
-BIN := "./bin/banner"
-DOCKER_IMG="banner:develop"
+BIN := "./bin/rotator"
+DOCKER_IMG="rotator:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
 build:
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/banner
+	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/rotator
 
 run: build
-	$(BIN) -config ./configs/banner.json
+	$(BIN) -config ./configs/rotator.json
 
 build-img:
 	docker build \
@@ -45,16 +45,16 @@ generate:
     --grpc-gateway_opt logtostderr=true \
     --grpc-gateway_opt generate_unbound_methods=true \
     --proto_path=api/ \
-    api/BannerService.proto
+    api/RotatorService.proto
 
 	protoc -I . --grpc-gateway_out api/pb\
     --grpc-gateway_opt logtostderr=true \
     --grpc-gateway_opt generate_unbound_methods=true \
     --proto_path=api/ \
-    api/BannerService.proto
+    api/RotatorService.proto
 
 	protoc -I . \
     --go_out=":api/pb" \
     --validate_out="lang=go:api/pb" \
      --proto_path=api/ \
-    api/BannerService.proto
+    api/RotatorService.proto
