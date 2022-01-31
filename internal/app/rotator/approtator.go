@@ -1,6 +1,11 @@
 package approtator
 
-import "context"
+import (
+	"context"
+	"time"
+
+	rotatorstorage "github.com/alexMolokov/otus-rotate-banner/internal/storage/rotator"
+)
 
 type App struct {
 	Logger  Logger
@@ -8,18 +13,39 @@ type App struct {
 }
 
 func (a *App) AddBannerToSlot(ctx context.Context, bannerID, slotID int64) error {
-	return nil
+	opCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	return a.Storage.AddBannerToSlot(opCtx, bannerID, slotID)
 }
 
 func (a *App) RemoveBannerFromSlot(ctx context.Context, bannerID, slotID int64) error {
-	return nil
+	opCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	return a.Storage.RemoveBannerFromSlot(opCtx, bannerID, slotID)
 }
 
 func (a *App) CountTransition(ctx context.Context, bannerID, slotID, sgID int64) error {
-	return nil
+	opCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	return a.Storage.CountTransition(opCtx, bannerID, slotID, sgID)
 }
 
 func (a *App) ChooseBanner(ctx context.Context, slotID, sgID int64) (bannerID int64, err error) {
+	opCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	bannersStat, err := a.Storage.GetBannersStat(opCtx, slotID, sgID)
+	if err != nil {
+		return 0, err
+	}
+	_ = bannersStat
+
+	// TODO многорукий бандит
+	// TODO увеличить показы
+
 	return 1, nil
 }
 
@@ -30,7 +56,16 @@ type Logger interface {
 	Error(msg string, args ...interface{})
 }
 
-type Storage interface{}
+type Storage interface {
+	GetBannerByID(ctx context.Context, bannerID int64) (*rotatorstorage.Banner, error)
+	GetSlotByID(ctx context.Context, slotID int64) (*rotatorstorage.Slot, error)
+	GetSocialGroupByID(ctx context.Context, sgID int64) (*rotatorstorage.SocialGroup, error)
+	AddBannerToSlot(ctx context.Context, bannerID, slotID int64) error
+	RemoveBannerFromSlot(ctx context.Context, bannerID, slotID int64) error
+	CountTransition(ctx context.Context, bannerID, slotID, sgID int64) error
+	CountDisplay(ctx context.Context, bannerID, slotID, sgID int64) error
+	GetBannersStat(ctx context.Context, slotID, sgID int64) ([]rotatorstorage.BannerStat, error)
+}
 
 func NewAppRotator(logger Logger, storage Storage) *App {
 	return &App{

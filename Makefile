@@ -31,6 +31,12 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
+migration:
+	goose -dir=migrations postgres "user=alex_molokov password=alex_molokov dbname=banner sslmode=disable" up
+
+migration-reverse:
+	goose -dir=migrations postgres "user=alex_molokov password=alex_molokov dbname=banner sslmode=disable" down
+
 generate:
 	rm -rf api/pb
 	mkdir -p api/pb
