@@ -14,8 +14,8 @@
     "host": "localhost",
     "port": 5432,
     "name": "banner",
-    "user": "banner",
-    "password": "banner",
+    "user": "alex_molokov",
+    "password": "alex_molokov",
     "maxConnectionPool": 4,
     "SslMode": "disable"
   }

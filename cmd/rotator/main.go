@@ -1,13 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	approtator "github.com/alexMolokov/otus-rotate-banner/internal/app/rotator"
 
 	// "github.com/alexMolokov/otus-rotate-banner/internal/app".
 	configApp "github.com/alexMolokov/otus-rotate-banner/internal/config"
 	"github.com/alexMolokov/otus-rotate-banner/internal/logger"
+	internalgrpc "github.com/alexMolokov/otus-rotate-banner/internal/server/grpc"
+	rs "github.com/alexMolokov/otus-rotate-banner/internal/storage/rotator"
 )
 
 var configFile string
@@ -41,43 +49,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%#v", cfg)
-
-	_ = logger
-
-	/*st, err := app.NewStorage(cfg)
+	storage := rs.NewRotatorStorage(cfg.DB)
+	err = storage.Connect()
 	if err != nil {
 		fmt.Printf("Can't create pool connect to storage: %v", err)
 		os.Exit(1)
 	}
+	defer func() {
+		err = storage.Close()
+		if err != nil {
+			logger.Error("failed to close pool connection to storage: " + err.Error())
+		}
+	}()
 
-	calendar := app.New(logg, st)
-	defer calendar.Close()
+	app := approtator.NewAppRotator(logger, storage)
 
 	tcpAddr := fmt.Sprintf("%s:%d", cfg.GRPC.Host, cfg.GRPC.Port)
-	httpAddr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
-
-	grpcServer := internalgrpc.NewServer(logg, calendar, tcpAddr)
-	httpServer := internalhttp.NewHTTPEcoSystemServer(httpAddr, tcpAddr)
+	grpcServer := internalgrpc.NewServer(logger, app, tcpAddr)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
 	go func() {
-		logg.Info("Service GRPC calendar is running...")
+		logger.Info("Service GRPC bannerRotator is running...")
 
 		if err := grpcServer.Start(); err != nil {
-			logg.Error("failed to start GRPC server: " + err.Error())
-			cancel()
-		}
-	}()
-
-	go func() {
-		logg.Info("Service HTTP REST calendar is running...")
-
-		if err := httpServer.Start(); err != nil {
-			logg.Error("failed to start HTTP server: " + err.Error())
+			logger.Error("failed to start GRPC server: " + err.Error())
 			cancel()
 		}
 	}()
@@ -87,15 +85,9 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	if err := httpServer.Stop(ctx); err != nil {
-		logg.Error("failed to stop HTTP REST calendar service: " + err.Error())
-	} else {
-		logg.Info("Service HTTP REST calendar is stopped")
-	}
-
 	if err := grpcServer.Stop(ctx); err != nil {
-		logg.Error("failed to stop GRPC calendar service: " + err.Error())
+		logger.Error("failed to stop GRPC bannerRotator service: " + err.Error())
 	} else {
-		logg.Info("Service GRPC calendar is stopped")
-	}*/
+		logger.Info("Service GRPC bannerRotator is stopped")
+	}
 }
