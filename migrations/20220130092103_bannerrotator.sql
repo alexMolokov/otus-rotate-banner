@@ -2,7 +2,8 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS slot (
     slot_id SERIAL PRIMARY KEY,
-    description text NOT NULL
+    description text NOT NULL,
+    total_display integer DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS banner (
